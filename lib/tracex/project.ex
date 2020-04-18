@@ -1,3 +1,5 @@
 defmodule Tracex.Project do
-  defstruct [:root_path, :source_files]
+  defstruct root_path: nil,
+            source_files: [],
+            modules: []
 end

@@ -9,8 +9,12 @@ defmodule Tracex.Collector do
     {:ok, {project, []}}
   end
 
-  def log_trace(event, env) do
-    GenServer.call(__MODULE__, {:log_trace, event, env})
+  def process(event, env) do
+    GenServer.call(__MODULE__, {:process, event, env})
+  end
+
+  def get_traces() do
+    GenServer.call(__MODULE__, :get_traces)
   end
 
   def dump_to_file(path) do
@@ -18,40 +22,59 @@ defmodule Tracex.Collector do
   end
 
   def handle_call(
-        {:log_trace, event, env},
+        {:process, event, env},
         _from,
-        {project, traces}
+        {project, _traces} = state
       ) do
-    traces =
-      if project_file?(project, env.file) do
-        env = build_env(env, project)
-        [{event, env} | traces]
-      else
-        traces
-      end
+    if project_file?(project, env.file) do
+      state = maybe_collect_trace(event, env, state)
 
-    {:reply, :ok, {project, traces}}
+      {:reply, :ok, state}
+    else
+      {:reply, :ok, state}
+    end
   end
 
-  def handle_call({:dump_to_file, path}, _from, %{traces: traces} = state) do
+  def handle_call(:get_traces, _from, {project, traces}) do
+    {:reply, traces, {project, traces}}
+  end
+
+  def handle_call({:dump_to_file, path}, _from, {project, traces}) do
     file = File.stream!(path)
 
     traces
+    |> Enum.reverse()
     |> Stream.map(&encode/1)
     |> Stream.intersperse("\n")
     |> Stream.into(file)
     |> Stream.run()
 
-    {:reply, :ok, state}
+    {:reply, :ok, {project, traces}}
+  end
+
+  defp maybe_collect_trace({:defmodule, _}, env, {project, traces}) do
+    project = Map.update!(project, :modules, &[env.module | &1])
+    {project, traces}
+  end
+
+  defp maybe_collect_trace(event, env, {project, traces}) do
+    if Tracex.Event.get_module(event) in project.modules do
+      {project, [to_trace(event, env, project) | traces]}
+    else
+      {project, traces}
+    end
   end
 
   defp project_file?(%{root_path: root_path}, path),
     do: String.starts_with?(path, root_path <> "/")
 
-  defp build_env(env, %{root_path: root_path}) do
-    env
-    |> Map.take(~w(aliases context context_modules file function line module)a)
-    |> Map.update!(:file, &String.replace_leading(&1, root_path <> "/", ""))
+  defp to_trace(event, env, %{root_path: root_path}) do
+    env =
+      env
+      |> Map.take(~w(aliases context context_modules file function line module)a)
+      |> Map.update!(:file, &String.replace_leading(&1, root_path <> "/", ""))
+
+    {event, env}
   end
 
   defp encode(trace) do
