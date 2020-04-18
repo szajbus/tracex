@@ -9,4 +9,10 @@ defmodule Tracex.Event do
   def get_module({:remote_function, _, module, _, _}), do: module
   def get_module({:remote_macro, _, module, _, _}), do: module
   def get_module(_), do: nil
+
+  def module_definition?({:defmodule, _}), do: true
+  def module_definition?(_), do: false
+
+  def ecto_schema_definition?({:remote_macro, _, Ecto.Schema, :__using__, 1}), do: true
+  def ecto_schema_definition?(_), do: false
 end
