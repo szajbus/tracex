@@ -24,10 +24,6 @@ defmodule Tracex.Collector do
     GenServer.call(__MODULE__, :get_traces)
   end
 
-  def dump_to_file(path) do
-    GenServer.call(__MODULE__, {:dump_to_file, path}, :infinity)
-  end
-
   def handle_call(
         {:process, event, env},
         _from,
@@ -46,24 +42,11 @@ defmodule Tracex.Collector do
   end
 
   def handle_call(:get_traces, _from, {project, traces}) do
-    {:reply, traces, {project, traces}}
+    {:reply, Enum.reverse(traces), {project, traces}}
   end
 
   def handle_call(:get_project, _from, {project, traces}) do
     {:reply, project, {project, traces}}
-  end
-
-  def handle_call({:dump_to_file, path}, _from, {project, traces}) do
-    file = File.stream!(path)
-
-    traces
-    |> Enum.reverse()
-    |> Stream.map(&encode/1)
-    |> Stream.intersperse("\n")
-    |> Stream.into(file)
-    |> Stream.run()
-
-    {:reply, :ok, {project, traces}}
   end
 
   defp maybe_collect_module({project, traces}, event, env) do
@@ -97,13 +80,5 @@ defmodule Tracex.Collector do
       |> Map.update!(:file, &String.replace_leading(&1, root_path <> "/", ""))
 
     {event, env}
-  end
-
-  defp encode(trace) do
-    inspect(trace,
-      limit: :infinity,
-      printable_limit: :infinity,
-      width: 1_000_000_000
-    )
   end
 end
