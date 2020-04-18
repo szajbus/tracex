@@ -7,10 +7,23 @@ defmodule Mix.Tasks.Tracex.Collect do
 
   @impl Mix.Task
   def run(_) do
-    project = Mix.Project.config()
+    project = build_project()
+    {:ok, _} = Tracex.Collector.start_link(project)
+
+    Mix.Task.clear()
+    Mix.Task.run("compile", ["--force", "--tracer", @tracer_module])
+
+    IO.puts("Dumping compiler traces to file.")
+    Tracex.Collector.dump_to_file("compiler_traces.log")
+
+    :ok
+  end
+
+  defp build_project do
+    mix_project = Mix.Project.config()
 
     srcs =
-      project
+      mix_project
       |> Keyword.take([:elixirc_paths, :apps_path])
       |> Keyword.values()
       |> Enum.map(&List.wrap/1)
@@ -18,14 +31,6 @@ defmodule Mix.Tasks.Tracex.Collect do
 
     source_files = Mix.Utils.extract_files(srcs, [:ex])
 
-    {:ok, _} = Tracex.Collector.start_link(cwd: File.cwd!(), source_files: source_files)
-
-    Mix.Task.clear()
-    Mix.Task.run("compile", ["--force", "--tracer", @tracer_module])
-
-    Logger.debug("Dumping compiler traces to file.")
-    Tracex.Collector.dump_to_file("compiler_traces.log")
-
-    :ok
+    %Tracex.Project{root_path: File.cwd!(), source_files: source_files}
   end
 end

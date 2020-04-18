@@ -1,25 +1,12 @@
 defmodule Tracex.Collector do
   use GenServer
 
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  def start_link(project) do
+    GenServer.start_link(__MODULE__, project, name: __MODULE__)
   end
 
-  def init(opts) do
-    cwd = Keyword.fetch!(opts, :cwd)
-
-    source_files =
-      opts
-      |> Keyword.fetch!(:source_files)
-      |> Enum.map(&Path.join(cwd, &1))
-
-    state = %{
-      cwd: cwd,
-      source_files: source_files,
-      traces: []
-    }
-
-    {:ok, state}
+  def init(project) do
+    {:ok, {project, []}}
   end
 
   def log_trace(event, env) do
@@ -33,24 +20,24 @@ defmodule Tracex.Collector do
   def handle_call(
         {:log_trace, event, env},
         _from,
-        %{cwd: cwd, source_files: source_files, traces: traces} = state
+        {project, traces}
       ) do
     traces =
-      if in_app?(env, source_files) do
-        env = build_env(env, cwd)
+      if project_file?(project, env.file) do
+        env = build_env(env, project)
         [{event, env} | traces]
       else
         traces
       end
 
-    {:reply, :ok, %{state | traces: traces}}
+    {:reply, :ok, {project, traces}}
   end
 
   def handle_call({:dump_to_file, path}, _from, %{traces: traces} = state) do
     file = File.stream!(path)
 
     traces
-    |> Stream.map(&to_line/1)
+    |> Stream.map(&encode/1)
     |> Stream.intersperse("\n")
     |> Stream.into(file)
     |> Stream.run()
@@ -58,15 +45,16 @@ defmodule Tracex.Collector do
     {:reply, :ok, state}
   end
 
-  defp in_app?(env, source_files), do: env.file in source_files
+  defp project_file?(%{root_path: root_path}, path),
+    do: String.starts_with?(path, root_path <> "/")
 
-  defp build_env(env, cwd) do
+  defp build_env(env, %{root_path: root_path}) do
     env
     |> Map.take(~w(aliases context context_modules file function line module)a)
-    |> Map.update!(:file, &String.replace_leading(&1, cwd <> "/", ""))
+    |> Map.update!(:file, &String.replace_leading(&1, root_path <> "/", ""))
   end
 
-  defp to_line(trace) do
+  defp encode(trace) do
     inspect(trace,
       limit: :infinity,
       printable_limit: :infinity,
