@@ -14,43 +14,42 @@ defmodule Tracex.Insights do
     module(traces, [module]) |> Map.get(module)
   end
 
-  def format_inbound(event, env) do
-    case Trace.event_func_and_arity(event) do
-      nil -> {elem(event, 0), env.module, Trace.call_location({event, env})}
-      func -> {elem(event, 0), env.module, func, Trace.call_location({event, env})}
+  defp format_inbound({event, env} = trace) do
+    if Trace.remote_call?(trace) do
+      {elem(event, 0), env.module, Trace.event_func_and_arity(trace), Trace.call_location(trace)}
+    else
+      {elem(event, 0), env.module, Trace.call_location(trace)}
     end
   end
 
-  def format_outbound(event, env) do
-    case Trace.event_func_and_arity(event) do
-      nil ->
-        {elem(event, 0), Trace.event_module({event, env}), Trace.call_location({event, env})}
-
-      func ->
-        {elem(event, 0), Trace.event_module({event, env}), func,
-         Trace.call_location({event, env})}
+  defp format_outbound({event, _} = trace) do
+    if Trace.remote_call?(trace) do
+      {elem(event, 0), Trace.event_module(trace), Trace.event_func_and_arity(trace),
+       Trace.call_location(trace)}
+    else
+      {elem(event, 0), Trace.event_module(trace), Trace.call_location(trace)}
     end
   end
 
-  defp maybe_add_inbound_trace(insights, {event, env}, modules) do
-    module = Trace.event_module({event, env})
+  defp maybe_add_inbound_trace(insights, trace, modules) do
+    module = Trace.event_module(trace)
 
     if module in modules do
       insights
       |> Map.put_new(module, %{inbound: [], outbound: []})
-      |> update_in([module, :inbound], &[format_inbound(event, env) | &1])
+      |> update_in([module, :inbound], &[format_inbound(trace) | &1])
     else
       insights
     end
   end
 
-  defp maybe_add_outbound_trace(insights, {event, env}, modules) do
+  defp maybe_add_outbound_trace(insights, {_, env} = trace, modules) do
     module = env.module
 
     if module in modules do
       insights
       |> Map.put_new(module, %{inbound: [], outbound: []})
-      |> update_in([module, :outbound], &[format_outbound(event, env) | &1])
+      |> update_in([module, :outbound], &[format_outbound(trace) | &1])
     else
       insights
     end

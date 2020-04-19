@@ -17,11 +17,15 @@ defmodule Tracex.Trace do
     end
   end
 
+  def remote_call?({event, _env}) do
+    elem(event, 0) in [:remote_function, :remote_macro]
+  end
+
   def event_func_and_arity({event, _env}) do
     case event do
       {:remote_function, _, _, name, arity} -> "#{name}/#{arity}"
       {:remote_macro, _, _, name, arity} -> "#{name}/#{arity}"
-      _ -> nil
+      _ -> "cannot extract func and arity from event #{inspect(event)}"
     end
   end
 
