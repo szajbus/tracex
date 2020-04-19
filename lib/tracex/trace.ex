@@ -22,8 +22,11 @@ defmodule Tracex.Trace do
     end
   end
 
-  def call_location({_event, env}) do
-    "#{env.file}:#{env.line}"
+  def call_location({event, env}) do
+    meta = elem(event, 1)
+    line = Keyword.get(meta, :line, env.line)
+
+    "#{env.file}:#{line}"
   end
 
   def module_definition?({event, _env}) do
