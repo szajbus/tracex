@@ -39,8 +39,8 @@ defmodule Tracex.Collector do
     {:ok, {project, traces}}
   end
 
-  def process(event, env) do
-    GenServer.cast(__MODULE__, {:process, event, env})
+  def process(trace) do
+    GenServer.cast(__MODULE__, {:process, trace})
   end
 
   def finalize do
@@ -55,12 +55,12 @@ defmodule Tracex.Collector do
     GenServer.call(__MODULE__, :get_traces)
   end
 
-  def handle_cast({:process, event, env}, {project, _traces} = state) do
+  def handle_cast({:process, {_, env} = trace}, {project, _traces} = state) do
     if project_file?(project, env.file) do
       state =
         state
-        |> maybe_collect_module(event, env)
-        |> maybe_collect_trace(event, env)
+        |> maybe_collect_module(trace)
+        |> maybe_collect_trace(trace)
 
       {:noreply, state}
     else
@@ -86,28 +86,28 @@ defmodule Tracex.Collector do
     {:reply, project, {project, traces}}
   end
 
-  defp maybe_collect_module({project, traces}, event, env) do
+  defp maybe_collect_module({project, traces}, {_, env} = trace) do
     project =
       cond do
-        Trace.module_definition?({event, env}) ->
+        Trace.module_definition?(trace) ->
           Project.add_module(
             project,
             {env.module, relative_path(env.file, project)}
           )
 
-        Trace.macro_usage?({event, env}, Ecto.Schema) ->
+        Trace.macro_usage?(trace, Ecto.Schema) ->
           Project.add_module_in(project, :ecto_schemas, env.module)
 
-        Trace.macro_usage?({event, env}, Phoenix.Controller) ->
+        Trace.macro_usage?(trace, Phoenix.Controller) ->
           Project.add_module_in(project, :phoenix_controllers, env.module)
 
-        Trace.macro_usage?({event, env}, Phoenix.Channel) ->
+        Trace.macro_usage?(trace, Phoenix.Channel) ->
           Project.add_module_in(project, :phoenix_channels, env.module)
 
-        Trace.macro_usage?({event, env}, Phoenix.View) ->
+        Trace.macro_usage?(trace, Phoenix.View) ->
           Project.add_module_in(project, :phoenix_views, env.module)
 
-        Trace.macro_usage?({event, env}, Phoenix.Router) ->
+        Trace.macro_usage?(trace, Phoenix.Router) ->
           Project.add_module_in(project, :phoenix_routers, env.module)
 
         true ->
@@ -117,18 +117,18 @@ defmodule Tracex.Collector do
     {project, traces}
   end
 
-  defp maybe_collect_trace({project, traces}, event, env) do
-    if Trace.event_module({event, env}) in @discarded_modules do
+  defp maybe_collect_trace({project, traces}, trace) do
+    if Trace.event_module(trace) in @discarded_modules do
       {project, traces}
     else
-      {project, [to_trace(event, env, project) | traces]}
+      {project, [normalize_trace(trace, project) | traces]}
     end
   end
 
   defp project_file?(%{root_path: root_path}, path),
     do: String.starts_with?(path, root_path <> "/")
 
-  defp to_trace(event, env, project) do
+  defp normalize_trace({event, env}, project) do
     env =
       env
       |> Map.take(~w(aliases context context_modules file function line module)a)
