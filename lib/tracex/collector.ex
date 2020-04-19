@@ -69,11 +69,10 @@ defmodule Tracex.Collector do
   end
 
   def handle_call(:finalize, _from, {project, traces}) do
-    modules = Map.keys(project.modules)
-
     traces =
       traces
-      |> Enum.filter(fn {event, _} -> Event.get_module(event) in modules end)
+      |> discard_non_project_modules(project)
+      |> discard_local_traces(project)
       |> Enum.reverse()
 
     {:reply, :ok, {project, traces}}
@@ -121,5 +120,22 @@ defmodule Tracex.Collector do
       |> Map.update!(:file, &String.replace_leading(&1, root_path <> "/", ""))
 
     {event, env}
+  end
+
+  defp discard_non_project_modules(traces, project) do
+    modules = Map.keys(project.modules)
+
+    Enum.filter(traces, fn {event, _} ->
+      Event.get_module(event) in modules
+    end)
+  end
+
+  defp discard_local_traces(traces, project) do
+    Enum.filter(traces, fn {event, env} ->
+      src = Map.get(project.modules, env.module)
+      dest = Map.get(project.modules, Event.get_module(event))
+
+      src != dest
+    end)
   end
 end
