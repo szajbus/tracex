@@ -1,8 +1,9 @@
 defmodule Tracex.Project do
   defstruct root_path: nil,
             source_files: [],
-            modules: %{},
-            ecto_schemas: %{}
+            module_files: %{},
+            modules: [],
+            ecto_schemas: []
 
   def build_from_mix_project(config \\ Mix.Project.config()) do
     srcs =
@@ -18,10 +19,13 @@ defmodule Tracex.Project do
   end
 
   def add_module(%__MODULE__{} = project, {module, file}) do
-    Map.update!(project, :modules, &Map.put(&1, module, file))
+    project
+    |> Map.update!(:module_files, &Map.put(&1, module, file))
+    |> Map.update!(:modules, &[module | &1])
   end
 
-  def add_ecto_schema(%__MODULE__{} = project, {module, file}) do
-    Map.update!(project, :ecto_schemas, &Map.put(&1, module, file))
+  def add_ecto_schema(%__MODULE__{} = project, module) do
+    project
+    |> Map.update!(:ecto_schemas, &[module | &1])
   end
 end

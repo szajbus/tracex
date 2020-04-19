@@ -96,10 +96,7 @@ defmodule Tracex.Collector do
           )
 
         Event.ecto_schema_definition?(event) ->
-          Project.add_ecto_schema(
-            project,
-            {env.module, relative_path(env.file, project)}
-          )
+          Project.add_ecto_schema(project, env.module)
 
         true ->
           project
@@ -129,10 +126,8 @@ defmodule Tracex.Collector do
   end
 
   defp discard_non_project_modules(traces, project) do
-    modules = Map.keys(project.modules)
-
     Enum.filter(traces, fn {event, _} ->
-      Event.get_module(event) in modules
+      Event.get_module(event) in project.modules
     end)
   end
 
@@ -141,10 +136,10 @@ defmodule Tracex.Collector do
       src =
         case env.module do
           nil -> env.file
-          module -> Map.get(project.modules, module)
+          module -> Map.get(project.module_files, module)
         end
 
-      dest = Map.get(project.modules, Event.get_module(event))
+      dest = Map.get(project.module_files, Event.get_module(event))
 
       src != dest
     end)
