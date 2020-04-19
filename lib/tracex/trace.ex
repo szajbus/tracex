@@ -33,9 +33,9 @@ defmodule Tracex.Trace do
     end
   end
 
-  def macro_usage?({event, _env}, module, name \\ :__using__, arity \\ 1) do
+  def macro_usage?({event, _env}, module) do
     case event do
-      {:remote_macro, _, ^module, ^name, ^arity} -> true
+      {:remote_macro, _, ^module, :__using__, 1} -> true
       _ -> false
     end
   end
