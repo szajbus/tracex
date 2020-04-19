@@ -19,4 +19,24 @@ defmodule Tracex.Event do
 
   def ecto_schema_definition?({:remote_macro, _, Ecto.Schema, :__using__, 1}), do: true
   def ecto_schema_definition?(_), do: false
+
+  def phoenix_controller_definition?({:remote_macro, _, Phoenix.Controller, :__using__, 1}),
+    do: true
+
+  def phoenix_controller_definition?(_), do: false
+
+  def phoenix_channel_definition?({:remote_macro, _, Phoenix.Channel, :__using__, 1}),
+    do: true
+
+  def phoenix_channel_definition?(_), do: false
+
+  def phoenix_view_definition?({:remote_macro, _, Phoenix.View, :__using__, 1}),
+    do: true
+
+  def phoenix_view_definition?(_), do: false
+
+  def phoenix_router_definition?({:remote_macro, _, Phoenix.Router, :__using__, 1}),
+    do: true
+
+  def phoenix_router_definition?(_), do: false
 end

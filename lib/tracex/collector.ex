@@ -96,7 +96,19 @@ defmodule Tracex.Collector do
           )
 
         Event.ecto_schema_definition?(event) ->
-          Project.add_ecto_schema(project, env.module)
+          Project.add_module_in(project, :ecto_schemas, env.module)
+
+        Event.phoenix_controller_definition?(event) ->
+          Project.add_module_in(project, :phoenix_controllers, env.module)
+
+        Event.phoenix_channel_definition?(event) ->
+          Project.add_module_in(project, :phoenix_channels, env.module)
+
+        Event.phoenix_view_definition?(event) ->
+          Project.add_module_in(project, :phoenix_views, env.module)
+
+        Event.phoenix_router_definition?(event) ->
+          Project.add_module_in(project, :phoenix_routers, env.module)
 
         true ->
           project

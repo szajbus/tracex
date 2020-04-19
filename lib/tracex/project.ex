@@ -3,7 +3,19 @@ defmodule Tracex.Project do
             source_files: [],
             module_files: %{},
             modules: [],
-            ecto_schemas: []
+            ecto_schemas: [],
+            phoenix_controllers: [],
+            phoenix_channels: [],
+            phoenix_views: [],
+            phoenix_routers: []
+
+  @module_lists [
+    :ecto_schemas,
+    :phoenix_controllers,
+    :phoenix_channels,
+    :phoenix_views,
+    :phoenix_routers
+  ]
 
   def build_from_mix_project(config \\ Mix.Project.config()) do
     srcs =
@@ -24,8 +36,8 @@ defmodule Tracex.Project do
     |> Map.update!(:modules, &[module | &1])
   end
 
-  def add_ecto_schema(%__MODULE__{} = project, module) do
+  def add_module_in(%__MODULE__{} = project, key, module) when key in @module_lists do
     project
-    |> Map.update!(:ecto_schemas, &[module | &1])
+    |> Map.update!(key, &[module | &1])
   end
 end
