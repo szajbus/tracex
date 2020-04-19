@@ -138,7 +138,12 @@ defmodule Tracex.Collector do
 
   defp discard_local_traces(traces, project) do
     Enum.filter(traces, fn {event, env} ->
-      src = Map.get(project.modules, env.module)
+      src =
+        case env.module do
+          nil -> env.file
+          module -> Map.get(project.modules, module)
+        end
+
       dest = Map.get(project.modules, Event.get_module(event))
 
       src != dest
