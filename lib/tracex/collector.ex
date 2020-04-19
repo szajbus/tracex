@@ -4,16 +4,24 @@ defmodule Tracex.Collector do
   alias Tracex.Event
   alias Tracex.Project
 
-  def start_link(project) do
-    GenServer.start_link(__MODULE__, project, name: __MODULE__)
+  def start_link(project, traces) do
+    GenServer.start_link(__MODULE__, {project, traces}, name: __MODULE__)
   end
 
-  def init(project) do
-    {:ok, {project, []}}
+  def stop do
+    if GenServer.whereis(__MODULE__), do: GenServer.stop(__MODULE__)
+  end
+
+  def init({project, traces}) do
+    {:ok, {project, traces}}
   end
 
   def process(event, env) do
-    GenServer.call(__MODULE__, {:process, event, env})
+    GenServer.cast(__MODULE__, {:process, event, env})
+  end
+
+  def finalize() do
+    GenServer.call(__MODULE__, :finalize, :infinity)
   end
 
   def get_project() do
@@ -24,21 +32,26 @@ defmodule Tracex.Collector do
     GenServer.call(__MODULE__, :get_traces)
   end
 
-  def handle_call(
-        {:process, event, env},
-        _from,
-        {project, _traces} = state
-      ) do
+  def handle_cast({:process, event, env}, {project, _traces} = state) do
     if project_file?(project, env.file) do
       state =
         state
         |> maybe_collect_module(event, env)
         |> maybe_collect_trace(event, env)
 
-      {:reply, :ok, state}
+      {:noreply, state}
     else
-      {:reply, :ok, state}
+      {:noreply, state}
     end
+  end
+
+  def handle_call(:finalize, _from, {project, traces}) do
+    traces =
+      traces
+      |> Enum.filter(fn {event, _} -> Event.get_module(event) in project.modules end)
+      |> Enum.reverse()
+
+    {:reply, :ok, {project, traces}}
   end
 
   def handle_call(:get_traces, _from, {project, traces}) do
