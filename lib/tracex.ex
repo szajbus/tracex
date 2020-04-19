@@ -1,5 +1,6 @@
 defmodule Tracex do
   alias Tracex.Collector
+  alias Tracex.Insights
   alias Tracex.Project
   alias Tracex.Tracer
 
@@ -20,6 +21,10 @@ defmodule Tracex do
 
   def traces do
     Collector.get_traces()
+  end
+
+  def insights(module) do
+    Insights.module(traces(), module)
   end
 
   def dump_to_file(path) do

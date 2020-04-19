@@ -10,6 +10,10 @@ defmodule Tracex.Event do
   def get_module({:remote_macro, _, module, _, _}), do: module
   def get_module(_), do: nil
 
+  def get_func_and_arity({:remote_function, _, _, name, arity}), do: "#{name}/#{arity}"
+  def get_func_and_arity({:remote_macro, _, _, name, arity}), do: "#{name}/#{arity}"
+  def get_func_and_arity(_), do: nil
+
   def module_definition?({:defmodule, _}), do: true
   def module_definition?(_), do: false
 
