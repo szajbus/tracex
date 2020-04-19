@@ -4,6 +4,29 @@ defmodule Tracex.Collector do
   alias Tracex.Event
   alias Tracex.Project
 
+  @discarded_modules [
+    Kernel,
+    Kernel.LexicalTracker,
+    Kernel.Typespec,
+    Kernel.Utils,
+    Module,
+    Enum,
+    Map,
+    Keyword,
+    List,
+    String,
+    String.Chars,
+    Macro,
+    Protocol,
+    Logger,
+    :elixir_bootstrap,
+    :elixir_def,
+    :elixir_module,
+    :elixir_utils,
+    :erlang,
+    :maps
+  ]
+
   def start_link(project, traces) do
     GenServer.start_link(__MODULE__, {project, traces}, name: __MODULE__)
   end
@@ -81,10 +104,10 @@ defmodule Tracex.Collector do
   end
 
   defp maybe_collect_trace({project, traces}, event, env) do
-    if Event.get_module(event) in project.modules do
-      {project, [to_trace(event, env, project) | traces]}
-    else
+    if Event.get_module(event) in @discarded_modules do
       {project, traces}
+    else
+      {project, [to_trace(event, env, project) | traces]}
     end
   end
 
