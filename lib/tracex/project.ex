@@ -1,8 +1,8 @@
 defmodule Tracex.Project do
   defstruct root_path: nil,
             source_files: [],
-            modules: [],
-            ecto_schemas: []
+            modules: %{},
+            ecto_schemas: %{}
 
   def build() do
     mix_project = Mix.Project.config()
@@ -19,11 +19,11 @@ defmodule Tracex.Project do
     %__MODULE__{root_path: File.cwd!(), source_files: source_files}
   end
 
-  def add_module(%__MODULE__{} = project, module) do
-    Map.update!(project, :modules, &[module | &1])
+  def add_module(%__MODULE__{} = project, {module, file}) do
+    Map.update!(project, :modules, &Map.put(&1, module, file))
   end
 
-  def add_ecto_schema(%__MODULE__{} = project, module) do
-    Map.update!(project, :ecto_schemas, &[module | &1])
+  def add_ecto_schema(%__MODULE__{} = project, {module, file}) do
+    Map.update!(project, :ecto_schemas, &Map.put(&1, module, file))
   end
 end

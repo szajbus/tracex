@@ -46,9 +46,11 @@ defmodule Tracex.Collector do
   end
 
   def handle_call(:finalize, _from, {project, traces}) do
+    modules = Map.keys(project.modules)
+
     traces =
       traces
-      |> Enum.filter(fn {event, _} -> Event.get_module(event) in project.modules end)
+      |> Enum.filter(fn {event, _} -> Event.get_module(event) in modules end)
       |> Enum.reverse()
 
     {:reply, :ok, {project, traces}}
@@ -63,16 +65,19 @@ defmodule Tracex.Collector do
   end
 
   defp maybe_collect_module({project, traces}, event, env) do
-    cond do
-      Event.module_definition?(event) ->
-        {Project.add_module(project, env.module), traces}
+    project =
+      cond do
+        Event.module_definition?(event) ->
+          Project.add_module(project, {env.module, env.file})
 
-      Event.ecto_schema_definition?(event) ->
-        {Project.add_ecto_schema(project, env.module), traces}
+        Event.ecto_schema_definition?(event) ->
+          Project.add_ecto_schema(project, {env.module, env.file})
 
-      true ->
-        {project, traces}
-    end
+        true ->
+          project
+      end
+
+    {project, traces}
   end
 
   defp maybe_collect_trace({project, traces}, event, env) do
