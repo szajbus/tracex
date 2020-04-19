@@ -90,10 +90,16 @@ defmodule Tracex.Collector do
     project =
       cond do
         Event.module_definition?(event) ->
-          Project.add_module(project, {env.module, env.file})
+          Project.add_module(
+            project,
+            {env.module, relative_path(env.file, project)}
+          )
 
         Event.ecto_schema_definition?(event) ->
-          Project.add_ecto_schema(project, {env.module, env.file})
+          Project.add_ecto_schema(
+            project,
+            {env.module, relative_path(env.file, project)}
+          )
 
         true ->
           project
@@ -113,11 +119,11 @@ defmodule Tracex.Collector do
   defp project_file?(%{root_path: root_path}, path),
     do: String.starts_with?(path, root_path <> "/")
 
-  defp to_trace(event, env, %{root_path: root_path}) do
+  defp to_trace(event, env, project) do
     env =
       env
       |> Map.take(~w(aliases context context_modules file function line module)a)
-      |> Map.update!(:file, &String.replace_leading(&1, root_path <> "/", ""))
+      |> Map.update!(:file, &relative_path(&1, project))
 
     {event, env}
   end
@@ -137,5 +143,9 @@ defmodule Tracex.Collector do
 
       src != dest
     end)
+  end
+
+  defp relative_path(full_path, project) do
+    Path.relative_to(full_path, project.root_path)
   end
 end
