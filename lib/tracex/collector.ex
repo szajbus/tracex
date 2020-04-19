@@ -118,7 +118,7 @@ defmodule Tracex.Collector do
   end
 
   defp maybe_collect_trace({project, traces}, trace) do
-    if Trace.event_module(trace) in @discarded_modules do
+    if Trace.module_definition?(trace) or Trace.event_module(trace) in @discarded_modules do
       {project, traces}
     else
       {project, [normalize_trace(trace, project) | traces]}

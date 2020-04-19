@@ -1,5 +1,5 @@
 defmodule Tracex.Trace do
-  def event_module({event, _env}) do
+  def event_module({event, env}) do
     case event do
       {:import, _, module, _} -> module
       {:imported_function, _, module, _, _} -> module
@@ -7,10 +7,13 @@ defmodule Tracex.Trace do
       {:alias, _, module, _, _} -> module
       {:alias_expansion, _, _, module} -> module
       {:alias_reference, _, module} -> module
+      {:require, _, module, _} -> module
       {:struct_expansion, _, module, _} -> module
       {:remote_function, _, module, _, _} -> module
       {:remote_macro, _, module, _, _} -> module
-      _ -> nil
+      {:local_function, _, _, _} -> env.module
+      {:local_macro, _, _, _} -> env.module
+      _ -> raise "cannot extract module from event: #{inspect(event)}"
     end
   end
 
