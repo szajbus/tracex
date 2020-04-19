@@ -4,11 +4,9 @@ defmodule Tracex.Project do
             modules: %{},
             ecto_schemas: %{}
 
-  def build do
-    mix_project = Mix.Project.config()
-
+  def build_from_mix_project(config \\ Mix.Project.config()) do
     srcs =
-      mix_project
+      config
       |> Keyword.take([:elixirc_paths, :apps_path])
       |> Keyword.values()
       |> Enum.map(&List.wrap/1)

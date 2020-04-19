@@ -3,8 +3,8 @@ defmodule Tracex do
   alias Tracex.Project
   alias Tracex.Tracer
 
-  def compile_project do
-    start_collector()
+  def compile_project(project \\ Project.build_from_mix_project()) do
+    start_collector(project)
 
     Mix.Task.clear()
     Mix.Task.run("compile", ["--force", "--tracer", Tracer])
@@ -63,7 +63,7 @@ defmodule Tracex do
     term
   end
 
-  defp start_collector(project \\ Project.build(), traces \\ []) do
+  defp start_collector(project, traces \\ []) do
     Collector.stop()
     {:ok, _} = Collector.start_link(project, traces)
   end
