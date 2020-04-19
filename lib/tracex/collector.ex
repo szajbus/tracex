@@ -1,7 +1,7 @@
 defmodule Tracex.Collector do
   use GenServer
 
-  alias Tracex.Event
+  alias Tracex.Trace
   alias Tracex.Project
 
   @discarded_modules [
@@ -89,25 +89,25 @@ defmodule Tracex.Collector do
   defp maybe_collect_module({project, traces}, event, env) do
     project =
       cond do
-        Event.module_definition?(event) ->
+        Trace.module_definition?({event, env}) ->
           Project.add_module(
             project,
             {env.module, relative_path(env.file, project)}
           )
 
-        Event.ecto_schema_definition?(event) ->
+        Trace.macro_usage?({event, env}, Ecto.Schema) ->
           Project.add_module_in(project, :ecto_schemas, env.module)
 
-        Event.phoenix_controller_definition?(event) ->
+        Trace.macro_usage?({event, env}, Phoenix.Controller) ->
           Project.add_module_in(project, :phoenix_controllers, env.module)
 
-        Event.phoenix_channel_definition?(event) ->
+        Trace.macro_usage?({event, env}, Phoenix.Channel) ->
           Project.add_module_in(project, :phoenix_channels, env.module)
 
-        Event.phoenix_view_definition?(event) ->
+        Trace.macro_usage?({event, env}, Phoenix.View) ->
           Project.add_module_in(project, :phoenix_views, env.module)
 
-        Event.phoenix_router_definition?(event) ->
+        Trace.macro_usage?({event, env}, Phoenix.Router) ->
           Project.add_module_in(project, :phoenix_routers, env.module)
 
         true ->
@@ -118,7 +118,7 @@ defmodule Tracex.Collector do
   end
 
   defp maybe_collect_trace({project, traces}, event, env) do
-    if Event.get_module(event) in @discarded_modules do
+    if Trace.event_module({event, env}) in @discarded_modules do
       {project, traces}
     else
       {project, [to_trace(event, env, project) | traces]}
@@ -138,20 +138,20 @@ defmodule Tracex.Collector do
   end
 
   defp discard_non_project_modules(traces, project) do
-    Enum.filter(traces, fn {event, _} ->
-      Event.get_module(event) in project.modules
+    Enum.filter(traces, fn trace ->
+      Trace.event_module(trace) in project.modules
     end)
   end
 
   defp discard_local_traces(traces, project) do
-    Enum.filter(traces, fn {event, env} ->
+    Enum.filter(traces, fn {_, env} = trace ->
       src =
         case env.module do
           nil -> env.file
           module -> Map.get(project.module_files, module)
         end
 
-      dest = Map.get(project.module_files, Event.get_module(event))
+      dest = Map.get(project.module_files, Trace.event_module(trace))
 
       src != dest
     end)
