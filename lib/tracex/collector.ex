@@ -43,15 +43,15 @@ defmodule Tracex.Collector do
     GenServer.cast(__MODULE__, {:process, event, env})
   end
 
-  def finalize() do
+  def finalize do
     GenServer.call(__MODULE__, :finalize, :infinity)
   end
 
-  def get_project() do
+  def get_project do
     GenServer.call(__MODULE__, :get_project)
   end
 
-  def get_traces() do
+  def get_traces do
     GenServer.call(__MODULE__, :get_traces)
   end
 

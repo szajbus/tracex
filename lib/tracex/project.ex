@@ -4,7 +4,7 @@ defmodule Tracex.Project do
             modules: %{},
             ecto_schemas: %{}
 
-  def build() do
+  def build do
     mix_project = Mix.Project.config()
 
     srcs =
