@@ -10,27 +10,20 @@ defmodule Tracex do
     Mix.Task.clear()
     Mix.Task.run("compile", ["--force", "--tracer", Tracer])
 
-    Collector.finalize()
+    {project, traces} = Collector.finalize()
+    Collector.stop()
 
-    :ok
+    {project, traces}
   end
 
-  def project do
-    Collector.get_project()
+  def insights(traces, module) do
+    Insights.module(traces, module)
   end
 
-  def traces do
-    Collector.get_traces()
-  end
-
-  def insights(module) do
-    Insights.module(traces(), module)
-  end
-
-  def dump_to_file(path) do
+  def dump_to_file(project, traces, path) do
     file = File.stream!(path)
 
-    [project() | traces()]
+    [project | traces]
     |> Stream.map(&encode/1)
     |> Stream.intersperse("\n")
     |> Stream.into(file)
@@ -43,10 +36,7 @@ defmodule Tracex do
       |> stream_from_file()
       |> Enum.to_list()
 
-    start_collector(project, traces)
-    Collector.finalize()
-
-    :ok
+    {project, traces}
   end
 
   def stream_from_file(path) do

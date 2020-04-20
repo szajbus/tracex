@@ -9,8 +9,8 @@ defmodule Mix.Tasks.Tracex.Collect do
   def run(argv) do
     {opts, _argv, _errors} = OptionParser.parse(argv, strict: @default_opts)
 
-    Tracex.compile_project()
-    Tracex.dump_to_file(opts[:path])
+    {project, traces} = Tracex.compile_project()
+    Tracex.dump_to_file(project, traces, opts[:path])
 
     :ok
   end

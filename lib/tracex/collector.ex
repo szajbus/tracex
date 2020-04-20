@@ -47,14 +47,6 @@ defmodule Tracex.Collector do
     GenServer.call(__MODULE__, :finalize, :infinity)
   end
 
-  def get_project do
-    GenServer.call(__MODULE__, :get_project)
-  end
-
-  def get_traces do
-    GenServer.call(__MODULE__, :get_traces)
-  end
-
   def handle_cast({:process, {_, env} = trace}, {project, _traces} = state) do
     if project_file?(project, env.file) do
       state =
@@ -75,15 +67,7 @@ defmodule Tracex.Collector do
       |> discard_local_traces(project)
       |> Enum.reverse()
 
-    {:reply, :ok, {project, traces}}
-  end
-
-  def handle_call(:get_traces, _from, {project, traces}) do
-    {:reply, Enum.reverse(traces), {project, traces}}
-  end
-
-  def handle_call(:get_project, _from, {project, traces}) do
-    {:reply, project, {project, traces}}
+    {:reply, {project, traces}, {project, traces}}
   end
 
   defp maybe_collect_module({project, traces}, {_, env} = trace) do
