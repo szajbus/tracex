@@ -1,7 +1,6 @@
 defmodule Tracex.Collector do
   use GenServer
 
-  alias Tracex.Classifier
   alias Tracex.Trace
   alias Tracex.Project
 
@@ -28,16 +27,16 @@ defmodule Tracex.Collector do
     :maps
   ]
 
-  def start_link(project, traces) do
-    GenServer.start_link(__MODULE__, {project, traces}, name: __MODULE__)
+  def start_link(project, traces, classifiers) do
+    GenServer.start_link(__MODULE__, {project, traces, classifiers}, name: __MODULE__)
   end
 
   def stop do
     if GenServer.whereis(__MODULE__), do: GenServer.stop(__MODULE__)
   end
 
-  def init({project, traces}) do
-    {:ok, {project, traces}}
+  def init({project, traces, classifiers}) do
+    {:ok, {project, traces, classifiers}}
   end
 
   def process(trace) do
@@ -48,7 +47,7 @@ defmodule Tracex.Collector do
     GenServer.call(__MODULE__, :finalize, :infinity)
   end
 
-  def handle_cast({:process, {_, env} = trace}, {project, _traces} = state) do
+  def handle_cast({:process, {_, env} = trace}, {project, _, _} = state) do
     if project_file?(project, env.file) do
       state =
         state
@@ -61,48 +60,48 @@ defmodule Tracex.Collector do
     end
   end
 
-  def handle_call(:finalize, _from, {project, traces}) do
+  def handle_call(:finalize, _from, {project, traces, classifiers}) do
     traces =
       traces
       |> discard_non_project_modules(project)
       |> discard_local_traces(project)
       |> Enum.reverse()
 
-    {:reply, {project, traces}, {project, traces}}
+    {:reply, {project, traces}, {project, traces, classifiers}}
   end
 
-  defp maybe_collect_module({project, traces}, trace) do
+  defp maybe_collect_module({project, traces, classifiers}, trace) do
     project =
       project
-      |> maybe_add_module(trace)
-      |> maybe_classify_module(trace)
+      |> maybe_classify_module(trace, classifiers)
 
-    {project, traces}
+    {project, traces, classifiers}
   end
 
-  defp maybe_add_module(project, {_, env} = trace) do
-    if Trace.module_definition?(trace) do
-      Project.add_module(
-        project,
-        {Trace.outbound_module(trace), relative_path(env.file, project)}
-      )
-    else
-      project
-    end
+  defp maybe_classify_module(project, trace, classifiers) do
+    Enum.reduce(classifiers, project, fn classifier, project ->
+      actions = classifier.classify(trace) |> List.wrap()
+
+      Enum.reduce(actions, project, fn action, project ->
+        case action do
+          {:track, module, file} ->
+            Project.add_module(project, {module, relative_path(file, project)})
+
+          {:tag, module, tag} ->
+            Project.tag_module(project, module, tag)
+
+          {:extra, module, key, val} ->
+            Project.add_extra(project, module, key, val)
+        end
+      end)
+    end)
   end
 
-  defp maybe_classify_module(project, trace) do
-    case Classifier.classify(trace) do
-      nil -> project
-      {:tag, tag} -> Project.tag_module(project, Trace.outbound_module(trace), tag)
-    end
-  end
-
-  defp maybe_collect_trace({project, traces}, trace) do
+  defp maybe_collect_trace({project, traces, classifiers}, trace) do
     if Trace.module_definition?(trace) or Trace.inbound_module(trace) in @discarded_modules do
-      {project, traces}
+      {project, traces, classifiers}
     else
-      {project, [normalize_trace(trace, project) | traces]}
+      {project, [normalize_trace(trace, project) | traces], classifiers}
     end
   end
 

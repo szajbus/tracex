@@ -4,8 +4,12 @@ defmodule Tracex do
   alias Tracex.Project
   alias Tracex.Tracer
 
-  def compile_project(project \\ Project.build_from_mix_project()) do
-    start_collector(project)
+  def compile_project(opts \\ []) when is_list(opts),
+    do: compile_project(Project.build_from_mix_project(), opts)
+
+  def compile_project(project, opts) do
+    classifiers = [Tracex.Classifier | opts[:extra_classifiers]]
+    start_collector(project, [], classifiers)
 
     Mix.Task.clear()
     Mix.Task.run("compile", ["--force", "--tracer", Tracer])
@@ -58,8 +62,8 @@ defmodule Tracex do
     term
   end
 
-  defp start_collector(project, traces \\ []) do
+  defp start_collector(project, traces, classifiers) do
     Collector.stop()
-    {:ok, _} = Collector.start_link(project, traces)
+    {:ok, _} = Collector.start_link(project, traces, classifiers)
   end
 end

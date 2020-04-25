@@ -1,22 +1,25 @@
 defmodule Tracex.Classifier do
   alias Tracex.Trace
 
-  def classify(trace) do
+  def classify({_, env} = trace) do
     cond do
+      Trace.module_definition?(trace) ->
+        {:track, Trace.outbound_module(trace), env.file}
+
       Trace.macro_usage?(trace, Ecto.Schema) ->
-        {:tag, :ecto_schema}
+        {:tag, Trace.outbound_module(trace), :ecto_schema}
 
       Trace.macro_usage?(trace, Phoenix.Controller) ->
-        {:tag, :phoenix_controller}
+        {:tag, Trace.outbound_module(trace), :phoenix_controller}
 
       Trace.macro_usage?(trace, Phoenix.Channel) ->
-        {:tag, :phoenix_channel}
+        {:tag, Trace.outbound_module(trace), :phoenix_channel}
 
       Trace.macro_usage?(trace, Phoenix.View) ->
-        {:tag, :phoenix_view}
+        {:tag, Trace.outbound_module(trace), :phoenix_view}
 
       Trace.macro_usage?(trace, Phoenix.Router) ->
-        {:tag, :phoenix_router}
+        {:tag, Trace.outbound_module(trace), :phoenix_router}
 
       true ->
         nil
