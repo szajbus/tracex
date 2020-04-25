@@ -1,21 +1,11 @@
 defmodule Tracex.Project do
   defstruct root_path: nil,
             source_files: [],
-            module_files: %{},
-            modules: [],
-            ecto_schemas: [],
-            phoenix_controllers: [],
-            phoenix_channels: [],
-            phoenix_views: [],
-            phoenix_routers: []
+            modules: %{}
 
-  @module_lists [
-    :ecto_schemas,
-    :phoenix_controllers,
-    :phoenix_channels,
-    :phoenix_views,
-    :phoenix_routers
-  ]
+  defmodule Module do
+    defstruct name: nil, file: nil, tags: []
+  end
 
   def build_from_mix_project(config \\ Mix.Project.config()) do
     srcs =
@@ -30,14 +20,18 @@ defmodule Tracex.Project do
     %__MODULE__{root_path: File.cwd!(), source_files: source_files}
   end
 
-  def add_module(%__MODULE__{} = project, {module, file}) do
+  def module_file(project, module) do
     project
-    |> Map.update!(:module_files, &Map.put(&1, module, file))
-    |> Map.update!(:modules, &[module | &1])
+    |> get_in([Access.key(:modules), module, Access.key(:file)])
   end
 
-  def add_module_in(%__MODULE__{} = project, key, module) when key in @module_lists do
+  def add_module(%__MODULE__{} = project, {module, file}) do
     project
-    |> Map.update!(key, &[module | &1])
+    |> put_in([Access.key(:modules), module], %Module{name: module, file: file})
+  end
+
+  def tag_module(%__MODULE__{} = project, module, tag) do
+    project
+    |> update_in([Access.key(:modules), module, Access.key(:tags)], &[tag | &1])
   end
 end

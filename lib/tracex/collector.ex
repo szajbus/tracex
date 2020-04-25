@@ -1,6 +1,7 @@
 defmodule Tracex.Collector do
   use GenServer
 
+  alias Tracex.Classifier
   alias Tracex.Trace
   alias Tracex.Project
 
@@ -70,35 +71,31 @@ defmodule Tracex.Collector do
     {:reply, {project, traces}, {project, traces}}
   end
 
-  defp maybe_collect_module({project, traces}, {_, env} = trace) do
+  defp maybe_collect_module({project, traces}, trace) do
     project =
-      cond do
-        Trace.module_definition?(trace) ->
-          Project.add_module(
-            project,
-            {env.module, relative_path(env.file, project)}
-          )
-
-        Trace.macro_usage?(trace, Ecto.Schema) ->
-          Project.add_module_in(project, :ecto_schemas, env.module)
-
-        Trace.macro_usage?(trace, Phoenix.Controller) ->
-          Project.add_module_in(project, :phoenix_controllers, env.module)
-
-        Trace.macro_usage?(trace, Phoenix.Channel) ->
-          Project.add_module_in(project, :phoenix_channels, env.module)
-
-        Trace.macro_usage?(trace, Phoenix.View) ->
-          Project.add_module_in(project, :phoenix_views, env.module)
-
-        Trace.macro_usage?(trace, Phoenix.Router) ->
-          Project.add_module_in(project, :phoenix_routers, env.module)
-
-        true ->
-          project
-      end
+      project
+      |> maybe_add_module(trace)
+      |> maybe_classify_module(trace)
 
     {project, traces}
+  end
+
+  defp maybe_add_module(project, {_, env} = trace) do
+    if Trace.module_definition?(trace) do
+      Project.add_module(
+        project,
+        {Trace.outbound_module(trace), relative_path(env.file, project)}
+      )
+    else
+      project
+    end
+  end
+
+  defp maybe_classify_module(project, trace) do
+    case Classifier.classify(trace) do
+      nil -> project
+      {:tag, tag} -> Project.tag_module(project, Trace.outbound_module(trace), tag)
+    end
   end
 
   defp maybe_collect_trace({project, traces}, trace) do
@@ -123,7 +120,7 @@ defmodule Tracex.Collector do
 
   defp discard_non_project_modules(traces, project) do
     Enum.filter(traces, fn trace ->
-      Trace.inbound_module(trace) in project.modules
+      Trace.inbound_module(trace) in Map.keys(project.modules)
     end)
   end
 
@@ -132,10 +129,10 @@ defmodule Tracex.Collector do
       src =
         case Trace.outbound_module(trace) do
           nil -> env.file
-          module -> Map.get(project.module_files, module)
+          module -> Project.module_file(project, module)
         end
 
-      dest = Map.get(project.module_files, Trace.inbound_module(trace))
+      dest = Project.module_file(project, Trace.inbound_module(trace))
 
       src != dest
     end)
