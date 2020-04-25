@@ -4,7 +4,7 @@ defmodule Tracex.Project do
             modules: %{}
 
   defmodule Module do
-    defstruct name: nil, file: nil, tags: []
+    defstruct name: nil, file: nil, tags: [], extra: %{}
   end
 
   def build_from_mix_project(config \\ Mix.Project.config()) do
@@ -33,5 +33,10 @@ defmodule Tracex.Project do
   def tag_module(%__MODULE__{} = project, module, tag) do
     project
     |> update_in([Access.key(:modules), module, Access.key(:tags)], &[tag | &1])
+  end
+
+  def add_extra(%__MODULE__{} = project, module, key, val) do
+    project
+    |> put_in([Access.key(:modules), module, Access.key(:extra), key], val)
   end
 end
