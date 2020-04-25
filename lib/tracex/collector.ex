@@ -102,7 +102,7 @@ defmodule Tracex.Collector do
   end
 
   defp maybe_collect_trace({project, traces}, trace) do
-    if Trace.module_definition?(trace) or Trace.event_module(trace) in @discarded_modules do
+    if Trace.module_definition?(trace) or Trace.inbound_module(trace) in @discarded_modules do
       {project, traces}
     else
       {project, [normalize_trace(trace, project) | traces]}
@@ -123,19 +123,19 @@ defmodule Tracex.Collector do
 
   defp discard_non_project_modules(traces, project) do
     Enum.filter(traces, fn trace ->
-      Trace.event_module(trace) in project.modules
+      Trace.inbound_module(trace) in project.modules
     end)
   end
 
   defp discard_local_traces(traces, project) do
     Enum.filter(traces, fn {_, env} = trace ->
       src =
-        case env.module do
+        case Trace.outbound_module(trace) do
           nil -> env.file
           module -> Map.get(project.module_files, module)
         end
 
-      dest = Map.get(project.module_files, Trace.event_module(trace))
+      dest = Map.get(project.module_files, Trace.inbound_module(trace))
 
       src != dest
     end)

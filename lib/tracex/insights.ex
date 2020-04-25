@@ -14,25 +14,25 @@ defmodule Tracex.Insights do
     module(traces, [module]) |> Map.get(module)
   end
 
-  defp format_inbound({event, env} = trace) do
+  defp format_inbound({event, _} = trace) do
     if Trace.remote_call?(trace) do
-      {elem(event, 0), env.module, Trace.event_func_and_arity(trace), Trace.call_location(trace)}
+      {elem(event, 0), Trace.outbound_module(trace), Trace.event_func_and_arity(trace), Trace.call_location(trace)}
     else
-      {elem(event, 0), env.module, Trace.call_location(trace)}
+      {elem(event, 0), Trace.outbound_module(trace), Trace.call_location(trace)}
     end
   end
 
   defp format_outbound({event, _} = trace) do
     if Trace.remote_call?(trace) do
-      {elem(event, 0), Trace.event_module(trace), Trace.event_func_and_arity(trace),
+      {elem(event, 0), Trace.inbound_module(trace), Trace.event_func_and_arity(trace),
        Trace.call_location(trace)}
     else
-      {elem(event, 0), Trace.event_module(trace), Trace.call_location(trace)}
+      {elem(event, 0), Trace.inbound_module(trace), Trace.call_location(trace)}
     end
   end
 
   defp maybe_add_inbound_trace(insights, trace, modules) do
-    module = Trace.event_module(trace)
+    module = Trace.inbound_module(trace)
 
     if module in modules do
       insights

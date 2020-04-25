@@ -1,5 +1,5 @@
 defmodule Tracex.Trace do
-  def event_module({event, env}) do
+  def inbound_module({event, env}) do
     case event do
       {:import, _, module, _} -> module
       {:imported_function, _, module, _, _} -> module
@@ -16,6 +16,8 @@ defmodule Tracex.Trace do
       _ -> raise "cannot extract module from event: #{inspect(event)}"
     end
   end
+
+  def outbound_module({_, env}), do: env.module
 
   def remote_call?({event, _env}) do
     elem(event, 0) in [:remote_function, :remote_macro]
@@ -50,19 +52,19 @@ defmodule Tracex.Trace do
     end
   end
 
-  def inbound?({event, env}, module) do
+  def inbound?({event, _} = trace, module) do
     case event do
       {:local_function, _, _, _} -> false
       {:local_macro, _, _, _} -> false
-      _ -> event_module({event, env}) == module
+      _ -> inbound_module(trace) == module
     end
   end
 
-  def outbound?({event, env}, module) do
+  def outbound?({event, _} = trace, module) do
     case event do
       {:local_function, _, _, _} -> false
       {:local_macro, _, _, _} -> false
-      _ -> env.module == module
+      _ -> outbound_module(trace) == module
     end
   end
 end
