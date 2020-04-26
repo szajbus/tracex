@@ -32,7 +32,7 @@ defmodule Tracex.Project do
 
   def tag_module(%__MODULE__{} = project, module, tag) do
     project
-    |> update_in([Access.key(:modules), module, Access.key(:tags)], &[tag | &1])
+    |> update_in([Access.key(:modules), module, Access.key(:tags)], &[tag | &1] |> Enum.uniq())
   end
 
   def add_extra(%__MODULE__{} = project, module, key, val) do
