@@ -10,11 +10,14 @@ defmodule Mix.Tasks.Tracex.Collect do
   def run(argv) do
     {opts, _argv, _errors} = OptionParser.parse(argv, strict: @opts)
 
-    path = Keyword.get(opts, :path, "compiler_traces.log")
     classifiers = Keyword.get_values(opts, :classifier) |> Enum.map(&load_module/1)
 
-    {project, traces} = Tracex.compile_project(extra_classifiers: classifiers)
-    Tracex.dump_to_file(project, traces, path)
+    opts =
+      opts
+      |> Keyword.delete(:classifier)
+      |> Keyword.put(:extra_classifiers, classifiers)
+
+    Tracex.compile_project(opts)
 
     :ok
   end
