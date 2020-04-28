@@ -10,6 +10,9 @@ defmodule Tracex.Classifier do
       Trace.module_definition?(trace) ->
         {:track, Trace.outbound_module(trace), env.file}
 
+      Trace.macro_usage?(trace, Ecto.Repo) ->
+        {:tag, Trace.outbound_module(trace), :ecto_repo}
+
       Trace.macro_usage?(trace, Ecto.Schema) ->
         {:tag, Trace.outbound_module(trace), :ecto_schema}
 
