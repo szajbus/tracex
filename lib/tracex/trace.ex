@@ -1,4 +1,7 @@
 defmodule Tracex.Trace do
+  @type t :: {tuple, Macro.Env.t()}
+
+  @spec inbound_module(t) :: atom
   def inbound_module({event, env}) do
     case event do
       {:import, _, module, _} -> module
@@ -17,12 +20,15 @@ defmodule Tracex.Trace do
     end
   end
 
+  @spec outbound_module(t) :: atom
   def outbound_module({_, env}), do: env.module
 
+  @spec remote_call?(t) :: boolean
   def remote_call?({event, _env}) do
     elem(event, 0) in [:remote_function, :remote_macro]
   end
 
+  @spec event_func_and_arity(t) :: binary
   def event_func_and_arity({event, _env}) do
     case event do
       {:remote_function, _, _, name, arity} -> "#{name}/#{arity}"
@@ -31,6 +37,7 @@ defmodule Tracex.Trace do
     end
   end
 
+  @spec call_location(t) :: binary
   def call_location({event, env}) do
     meta = elem(event, 1)
     line = Keyword.get(meta, :line, env.line)
@@ -38,6 +45,7 @@ defmodule Tracex.Trace do
     "#{env.file}:#{line}"
   end
 
+  @spec module_definition?(t) :: boolean
   def module_definition?({event, _env}) do
     case event do
       {:defmodule, _} -> true
@@ -45,6 +53,7 @@ defmodule Tracex.Trace do
     end
   end
 
+  @spec macro_usage?(t, atom) :: boolean
   def macro_usage?({event, _env}, module) do
     case event do
       {:remote_macro, _, ^module, :__using__, 1} -> true
@@ -52,6 +61,7 @@ defmodule Tracex.Trace do
     end
   end
 
+  @spec inbound?(t, atom) :: boolean
   def inbound?({event, _} = trace, module) do
     case event do
       {:local_function, _, _, _} -> false
@@ -60,6 +70,7 @@ defmodule Tracex.Trace do
     end
   end
 
+  @spec outbound?(t, atom) :: boolean
   def outbound?({event, _} = trace, module) do
     case event do
       {:local_function, _, _, _} -> false

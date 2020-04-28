@@ -1,6 +1,10 @@
 defmodule Tracex.Classifier do
   alias Tracex.Trace
 
+  @spec classify(Trace.t()) ::
+          nil
+          | {:tag, atom, atom}
+          | {:track, atom, binary}
   def classify({_, env} = trace) do
     cond do
       Trace.module_definition?(trace) ->

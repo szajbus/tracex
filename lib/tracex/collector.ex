@@ -4,6 +4,9 @@ defmodule Tracex.Collector do
   alias Tracex.Trace
   alias Tracex.Project
 
+  @opaque state :: {Project.t(), list(Trace.t()), list(classifier)}
+  @type classifier :: atom
+
   @discarded_modules [
     Kernel,
     Kernel.LexicalTracker,
@@ -27,22 +30,28 @@ defmodule Tracex.Collector do
     :maps
   ]
 
+  @spec start_link(Project.t(), list(Trace.t()), list(classifier)) ::
+          :ignore | {:error, any} | {:ok, pid}
   def start_link(project, traces, classifiers) do
     GenServer.start_link(__MODULE__, {project, traces, classifiers}, name: __MODULE__)
   end
 
+  @spec stop :: nil | :ok
   def stop do
     if GenServer.whereis(__MODULE__), do: GenServer.stop(__MODULE__)
   end
 
+  @spec init(state) :: {:ok, state}
   def init({project, traces, classifiers}) do
     {:ok, {project, traces, classifiers}}
   end
 
+  @spec process(Trace.t()) :: :ok
   def process(trace) do
     GenServer.cast(__MODULE__, {:process, trace})
   end
 
+  @spec finalize :: {Project.t(), list(Trace.t())}
   def finalize do
     GenServer.call(__MODULE__, :finalize, :infinity)
   end

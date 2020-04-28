@@ -7,6 +7,7 @@ defmodule Mix.Tasks.Tracex.Collect do
   ]
 
   @impl Mix.Task
+  @spec run(list(binary)) :: :ok
   def run(argv) do
     {opts, _argv, _errors} = OptionParser.parse(argv, strict: @opts)
 

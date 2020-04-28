@@ -1,6 +1,7 @@
 defmodule Tracex.Insights do
   alias Tracex.Trace
 
+  @spec module(list(), atom | list(atom)) :: map
   def module(traces, modules) when is_list(modules) do
     traces
     |> Enum.reduce(%{}, fn trace, insights ->

@@ -2,11 +2,13 @@ defmodule Tracex do
   alias Tracex.Collector
   alias Tracex.Insights
   alias Tracex.Project
+  alias Tracex.Trace
   alias Tracex.Tracer
 
   @app :tracex
   @manifest_vsn 1
 
+  @spec compile_project(list) :: {Project.t(), list(Trace.t())}
   def compile_project(opts \\ []) do
     project = Project.build_from_mix_project()
 
@@ -26,10 +28,12 @@ defmodule Tracex do
     {project, traces}
   end
 
+  @spec insights([Trace.t()], atom | list(atom)) :: map
   def insights(traces, module) do
     Insights.module(traces, module)
   end
 
+  @spec load_from_manifest(binary) :: {Project.t(), list(Trace.t())}
   def load_from_manifest(path \\ manifest_path()) do
     read_manifest(path)
   end
