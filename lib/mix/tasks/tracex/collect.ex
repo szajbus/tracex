@@ -1,4 +1,8 @@
 defmodule Mix.Tasks.Tracex.Collect do
+  @moduledoc """
+  Command-line interface to Tracex collector
+  """
+
   use Mix.Task
 
   @opts [
@@ -6,6 +10,21 @@ defmodule Mix.Tasks.Tracex.Collect do
     classifier: [:string, :keep]
   ]
 
+  @doc """
+  Compiles project, collects compiler traces, builds project's metadata and dumps
+  to disk in form of manifest file.
+
+  ## Command line options
+
+    * `manifest_path` - path to manifest file,
+      defaults to `_build/{Mix.env}/lib/tracex/.mix/tracex.collect`
+    * `classifier` - path to a file defining custom classifier module
+
+  Multiple classifiers can be specified as:
+    `mix tracex.collect --classifier one.ex --classifier two.ex`
+
+  See `Tracex.Classifier` for information about writing custom classifiers.
+  """
   @impl Mix.Task
   @spec run(list(binary)) :: :ok
   def run(argv) do
@@ -16,7 +35,7 @@ defmodule Mix.Tasks.Tracex.Collect do
     opts =
       opts
       |> Keyword.delete(:classifier)
-      |> Keyword.put(:extra_classifiers, classifiers)
+      |> Keyword.put(:custom_classifiers, classifiers)
 
     Tracex.compile_project(opts)
 

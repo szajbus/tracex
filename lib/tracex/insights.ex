@@ -1,6 +1,17 @@
 defmodule Tracex.Insights do
+  @moduledoc """
+  Module providing insights on project's modules by analyzing traces collected
+  during its compilation
+  """
+
   alias Tracex.Trace
 
+  @doc """
+  Returns insights on given module or modules
+
+  If you need insights on multiple modules it's faster to pass them as a list
+  to this function instead of calling it for each module separately.
+  """
   @spec module(list(), atom | list(atom)) :: map
   def module(traces, modules) when is_list(modules) do
     traces
