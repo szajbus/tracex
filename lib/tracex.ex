@@ -37,8 +37,8 @@ defmodule Tracex do
   def compile_project(opts \\ []) do
     project = Project.build_from_mix_project()
 
-    path = opts[:manifest_path] || manifest_path()
-    classifiers = [Tracex.Classifier | opts[:custom_classifiers]]
+    path = Keyword.get(opts, :manifest_path) || manifest_path()
+    classifiers = [Tracex.Classifier | Keyword.get(opts, :custom_classifiers, [])]
 
     start_collector(project, [], classifiers)
 
