@@ -11,7 +11,8 @@ defmodule Tracex.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
-      package: package()
+      package: package(),
+      dialyzer: dialyzer()
     ]
   end
 
@@ -25,7 +26,8 @@ defmodule Tracex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0", only: :dev, runtime: false}
     ]
   end
 
@@ -46,6 +48,12 @@ defmodule Tracex.MixProject do
       links: %{
         "Github" => "https://github.com/szajbus/tracex"
       }
+    ]
+  end
+
+  defp dialyzer() do
+    [
+      plt_add_apps: [:mix]
     ]
   end
 end
