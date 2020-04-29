@@ -57,7 +57,19 @@ iex> project.get_module(MyApp.Model.User)
 }
 ```
 
-By default module information is rather basic, but with help of custom classifiers it can be easily augmented with data that is important in the context of your project (see "Classifiers" section below).
+By default module information is rather basic, but with help of custom classifiers modules can be annotated with extra information that is important in the context of your project (see [Classifiers](#classifiers) section).
+
+### Filtering modules by annotations
+
+Filtering by tags in built-in `Tracex.Project.get_modules/2`, extra annotations must be filtered manually.
+
+```elixir
+project
+|> Tracex.Project.get_modules(tags: [:phoenix_controller, :phoenix_view])
+|> Enum.filter(fn %{extra: extra} -> Map.get(extra, :context) == "Users" end)
+```
+
+### Module insights
 
 To get some insights into how a module is used and how it interacts with other modules in your project use `Tracex.insights/2`
 
@@ -82,7 +94,8 @@ iex> Tracex.insights(traces, MyApp.Model.User)
 
 Module insights encapsulate the information provided by compiler tracers. At the very minimum you can get some idea how the module interacts with others and possibly track down dependencies contributing to extensive recompilations in your project.
 
-## Classifiers
+
+### Classifiers
 
 Tracex is generic, it is able to extract some basic information about your project modules, but every project has its own unique characteristics, like naming conventions or usage of certain macros. Classifiers make it easy to leverage that tacit knowledge to annotate your project's modules.
 
@@ -154,16 +167,6 @@ To use a custom classifier module you must compile it manually before supplying 
 ```
 iex> c "my_classifier.exs"
 iex> Tracex.compile_project(custom_classifiers: [MyClassifier])
-```
-
-### Filtering modules by annotations
-
-Filtering by tags in built-in `Tracex.Project.get_modules/2`, extra annotations must be filtered manually.
-
-```elixir
-project
-|> Tracex.Project.get_modules(tags: [:phoenix_controller, :phoenix_view])
-|> Enum.filter(fn %{extra: extra} -> Map.get(extra, :context) == "Users" end)
 ```
 
 ## State of the library
