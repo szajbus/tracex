@@ -1,4 +1,6 @@
 defmodule Tracex.Collector do
+  @moduledoc false
+
   use GenServer
 
   alias Tracex.Trace

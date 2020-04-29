@@ -3,11 +3,14 @@ defmodule Tracex.Project do
   Wrapper for project metadata
 
   Keeps information about project's source files and defined modules.
-
   Project modules can be tagged or have extra attributes assigned.
   """
 
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+          modules: %{optional(atom) => project_module},
+          source_files: list(binary),
+          root_path: binary
+        }
   @type project_module :: __MODULE__.Module.t()
 
   defstruct root_path: nil,
@@ -17,7 +20,12 @@ defmodule Tracex.Project do
   defmodule Module do
     defstruct name: nil, file: nil, tags: [], extra: %{}
 
-    @type t :: %__MODULE__{}
+    @type t :: %__MODULE__{
+            name: atom,
+            file: binary,
+            tags: list(atom),
+            extra: map()
+          }
   end
 
   @doc """
@@ -75,7 +83,7 @@ defmodule Tracex.Project do
   end
 
   @doc """
-  Tag a module
+  Tags a module with `tag` for future filtering
   """
   @spec tag_module(t, atom, atom) :: t
   def tag_module(%__MODULE__{} = project, module, tag) do
@@ -84,7 +92,7 @@ defmodule Tracex.Project do
   end
 
   @doc """
-  Add an extra attribute to a module
+  Add an extra attribute to a module for future inspection
   """
   @spec add_extra(t, atom, atom, any) :: t
   def add_extra(%__MODULE__{} = project, module, key, val) do

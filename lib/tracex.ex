@@ -55,6 +55,8 @@ defmodule Tracex do
 
   @doc """
   Returns module insights
+
+  See `Tracex.Insights` for more information.
   """
   @spec insights(list(Trace.t()), atom | list(atom)) :: map
   def insights(traces, module) do
@@ -63,8 +65,6 @@ defmodule Tracex do
 
   @doc """
   Loads tracex manifest file from disk
-
-  Useful for analysis done in iex console.
   """
   @spec load_from_manifest(binary) :: {Project.t(), list(Trace.t())}
   def load_from_manifest(path \\ manifest_path()) do

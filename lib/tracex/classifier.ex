@@ -8,15 +8,21 @@ defmodule Tracex.Classifier do
     * `{:track, module, file}` - tracks module definition in given source file
       and enables trace collection for that module (collector does not collect
       traces for untracked modules)
-
     * `{:tag, module, tag}` - adds `tag` to module's tags
-
     * `{:extra, module, key, value}` - adds key/value pair to module's extra
       attributes
+
+  Consult README for information about providing custom classifiers for
+  your project.
   """
 
   alias Tracex.Trace
 
+  @doc """
+  Sets up tracking and generates module annotations for module types
+  common among mix projects, (e.g. ecto schemas, phoenix controllers, views
+  routers and channels).
+  """
   @spec classify(Trace.t()) ::
           nil
           | {:tag, atom, atom}
