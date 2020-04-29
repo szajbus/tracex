@@ -1,5 +1,8 @@
 # Tracex
 
+[![hex.pm](https://img.shields.io/hexpm/v/tracex.svg?style=flat)](https://hex.pm/packages/tracex)
+[![hexdocs.pm](https://img.shields.io/badge/docs-latest-green.svg?style=flat)](https://hexdocs.pm/tracex/)
+
 Tracex is a tool for static analysis of mix projects.
 
 It builds upon compiler tracing introduced in Elixir 1.10, simplifying collection of traces and turning them into valuable insights.
@@ -162,7 +165,6 @@ project
 |> Tracex.Project.get_modules(tags: [:phoenix_controller, :phoenix_view])
 |> Enum.filter(fn %{extra: extra} -> Map.get(extra, :context) == "Users" end)
 ```
-
 
 ## State of the library
 
