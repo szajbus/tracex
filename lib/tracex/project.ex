@@ -66,15 +66,6 @@ defmodule Tracex.Project do
   def get_module(project, module), do: Map.get(project.modules, module)
 
   @doc """
-  Returns a path to a file in which a module is defined
-  """
-  @spec get_module_file(t, atom) :: binary
-  def get_module_file(project, module) do
-    project
-    |> get_in([Access.key(:modules), module, Access.key(:file)])
-  end
-
-  @doc """
   Add module to the project
   """
   @spec add_module(t, {atom, binary}) :: t
