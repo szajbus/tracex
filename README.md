@@ -23,7 +23,7 @@ The package can be installed by adding `tracex` to your list of dependencies in 
 ```elixir
 def deps do
   [
-    {:tracex, "~> 0.1.0", only: :dev, runtime: false}
+    {:tracex, "~> 0.1.0", only: :dev}
   ]
 end
 ```
@@ -153,10 +153,6 @@ iex> c "my_classifier.exs"
 iex> Tracex.compile_project(custom_classifiers: [MyClassifier])
 ```
 
-## Documentation
-
-Documentation is available at [https://hexdocs.pm/tracex](https://hexdocs.pm/tracex).
-
 ## State of the library
 
 Tracex is highly experimental and completely untested. The interface is a subject to change.
@@ -170,6 +166,10 @@ Tracex is highly experimental and completely untested. The interface is a subjec
 * cycle detection in module dependency graph
 
 * ...
+
+## Documentation
+
+Documentation is available at [https://hexdocs.pm/tracex](https://hexdocs.pm/tracex).
 
 ## License
 
