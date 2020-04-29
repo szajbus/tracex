@@ -2,23 +2,13 @@ defmodule Tracex do
   @moduledoc """
   Tracex is a tool for static analysis of mix projects
 
-  As bad architectural decisions can lead to slow recompilation and negatively
-  affect developers' workflows, tracex aims to aid in refactoring by providing
-  insights into project's internal structure and interactions between its modules.
+  It builds upon compiler tracing introduced in Elixir 1.10, simplifying collection of traces and turning them into valuable insights.
 
-  Tracex collects traces emitted by Elixir compiler, performs some basic data extraction
-  and exposes to the developer for further analysis, together with project's metadata
-  built along the way.
+  Tracex collects traces emitted by Elixir compiler and performs some basic data extraction and classification. The result, together with project's metadata built along the way, is available to the developer for further analysis.
 
-  Tracex automatically recognizes some common types of modules present in mix project,
-  like Ecto schemas or Phoenix controllers. See `Tracex.Classifier` for full list.
+  Tracex automatically recognizes some common types of modules present in mix projects, like Ecto schemas or Phoenix controllers and views. Additionally it supports attaching custom classifiers that are specific to your project in order to collect extra information that may prove helpful in actual analysis.
 
-  Additionally it supports attaching custom classifiers that are specific to your
-  project in order to collect extra information to help with further analysis.
-
-  Elixir compiler emits a lot of traces. Tracex collets only the ones local to
-  your project. It means that any interaction of your project's code with Elixir's core
-  modules or external libraries is discarded.
+  Elixir compiler emits a lot of traces. For practical reasons tracex collets only ones that are local to your project. It means that any traces of interactions of your project's code with Elixir's core modules or external libraries are discarded.
   """
 
   alias Tracex.Collector
@@ -28,7 +18,7 @@ defmodule Tracex do
   alias Tracex.Tracer
 
   @app :tracex
-  @manifest_vsn 1
+  @manifest_vsn 0.1
 
   @doc """
   Compile a project and collect compiler traces for later analysis
