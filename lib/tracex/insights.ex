@@ -29,18 +29,18 @@ defmodule Tracex.Insights do
   defp format_inbound({event, _} = trace) do
     if Trace.remote_call?(trace) do
       {elem(event, 0), Trace.outbound_module(trace), Trace.event_func_and_arity(trace),
-       Trace.call_location(trace)}
+       Trace.event_location(trace)}
     else
-      {elem(event, 0), Trace.outbound_module(trace), Trace.call_location(trace)}
+      {elem(event, 0), Trace.outbound_module(trace), Trace.event_location(trace)}
     end
   end
 
   defp format_outbound({event, _} = trace) do
     if Trace.remote_call?(trace) do
       {elem(event, 0), Trace.inbound_module(trace), Trace.event_func_and_arity(trace),
-       Trace.call_location(trace)}
+       Trace.event_location(trace)}
     else
-      {elem(event, 0), Trace.inbound_module(trace), Trace.call_location(trace)}
+      {elem(event, 0), Trace.inbound_module(trace), Trace.event_location(trace)}
     end
   end
 

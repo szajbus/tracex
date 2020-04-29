@@ -76,8 +76,8 @@ defmodule Tracex.Trace do
   For example if an event originates in function's body, a line in which the function
   is defined is returned.
   """
-  @spec call_location(t) :: binary
-  def call_location({event, env}) do
+  @spec event_location(t) :: binary
+  def event_location({event, env}) do
     meta = elem(event, 1)
     line = Keyword.get(meta, :line, env.line)
 
