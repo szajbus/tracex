@@ -1,4 +1,20 @@
 defmodule Tracex.Classifier do
+  @moduledoc """
+  Default classifier that generates annotations for common modules,
+  that are being picked up by the collector.
+
+  The following annotations are currently supported:
+
+    * `{:track, module, file}` - tracks module definition in given source file
+      and enables trace collection for that module (collector does not collect
+      traces for untracked modules)
+
+    * `{:tag, module, tag}` - adds `tag` to module's tags
+
+    * `{:extra, module, key, value}` - adds key/value pair to module's extra
+      attributes
+  """
+
   alias Tracex.Trace
 
   @spec classify(Trace.t()) ::
