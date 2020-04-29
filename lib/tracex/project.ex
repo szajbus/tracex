@@ -8,6 +8,7 @@ defmodule Tracex.Project do
   """
 
   @type t :: %__MODULE__{}
+  @type project_module :: __MODULE__.Module.t()
 
   defstruct root_path: nil,
             source_files: [],
@@ -15,6 +16,8 @@ defmodule Tracex.Project do
 
   defmodule Module do
     defstruct name: nil, file: nil, tags: [], extra: %{}
+
+    @type t :: %__MODULE__{}
   end
 
   @doc """
@@ -35,10 +38,38 @@ defmodule Tracex.Project do
   end
 
   @doc """
+  Returns the list of modules tracked for project, optionally filtered
+
+  ## Options:
+
+    * `tags` - list of tags to filter modules by (at least one tag must match)
+  """
+  @spec get_modules(t, list(atom)) :: list(project_module)
+  def get_modules(project, filters \\ []) when is_list(filters) do
+    modules = Map.values(project.modules)
+
+    case Keyword.get(filters, :tags, []) do
+      [] ->
+        modules
+
+      tags ->
+        Enum.filter(modules, fn module ->
+          Enum.any?(tags, &(&1 in module.tags))
+        end)
+    end
+  end
+
+  @doc """
+  Returns project module
+  """
+  @spec get_module(t, atom) :: project_module
+  def get_module(project, module), do: Map.get(project.modules, module)
+
+  @doc """
   Returns a path to a file in which a module is defined
   """
-  @spec module_file(t, atom) :: binary
-  def module_file(project, module) do
+  @spec get_module_file(t, atom) :: binary
+  def get_module_file(project, module) do
     project
     |> get_in([Access.key(:modules), module, Access.key(:file)])
   end

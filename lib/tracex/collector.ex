@@ -137,10 +137,10 @@ defmodule Tracex.Collector do
       src =
         case Trace.outbound_module(trace) do
           nil -> env.file
-          module -> Project.module_file(project, module)
+          module -> Project.get_module_file(project, module)
         end
 
-      dest = Project.module_file(project, Trace.inbound_module(trace))
+      dest = Project.get_module_file(project, Trace.inbound_module(trace))
 
       src != dest
     end)

@@ -45,7 +45,7 @@ iex> {project, traces} = Tracex.load_from_manifest()
 `project` struct encapsulates information about project's modules and `traces` is a (possibly long) list of collected compiler traces.
 
 ```
-iex> project.modules[MyApp.Model.User]
+iex> project.get_module(MyApp.Model.User)
 %Tracex.Project.Module{
   extra: %{},
   file: "lib/models/user.ex",
@@ -152,6 +152,17 @@ To use a custom classifier module you must compile it manually before supplying 
 iex> c "my_classifier.exs"
 iex> Tracex.compile_project(custom_classifiers: [MyClassifier])
 ```
+
+### Filtering modules by annotations
+
+Filtering by tags in built-in `Tracex.Project.get_modules/2`, extra annotations must be filtered manually.
+
+```elixir
+project
+|> Tracex.Project.get_modules(tags: [:phoenix_controller, :phoenix_view])
+|> Enum.filter(fn %{extra: extra} -> Map.get(extra, :context) == "Users" end)
+```
+
 
 ## State of the library
 
