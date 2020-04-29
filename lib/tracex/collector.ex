@@ -89,10 +89,10 @@ defmodule Tracex.Collector do
 
   defp maybe_classify_module(project, trace, classifiers) do
     Enum.reduce(classifiers, project, fn classifier, project ->
-      actions = classifier.classify(trace) |> List.wrap()
+      annotations = classifier.classify(trace) |> List.wrap()
 
-      Enum.reduce(actions, project, fn action, project ->
-        case action do
+      Enum.reduce(annotations, project, fn annotation, project ->
+        case annotation do
           {:track, module, file} ->
             Project.add_module(project, {module, relative_path(file, project)})
 
