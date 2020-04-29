@@ -30,7 +30,7 @@ defmodule Tracex do
   ## Options
 
     * `manifest_path` - path to manifest file,
-      defaults to `_build/{Mix.env}/lib/tracex/.mix/tracex.collect`
+      defaults to `_build/{Mix.env}/lib/tracex/.mix/tracex`
     * `custom_classifiers` - list of project-specific classifier modules
   """
   @spec compile_project(list) :: {Project.t(), list(Trace.t())}
@@ -78,7 +78,7 @@ defmodule Tracex do
 
   defp manifest_path do
     path = Mix.Project.manifest_path(app: @app, build_per_environment: true)
-    Path.join(path, "tracex.collect")
+    Path.join(path, "tracex")
   end
 
   defp write_manifest({project, traces}, path) do
