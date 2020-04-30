@@ -60,6 +60,8 @@ defmodule Tracex.Collector do
 
   def handle_cast({:process, {_, env} = trace}, {project, _, _} = state) do
     if project_file?(project, env.file) do
+      trace = normalize_trace(trace, project)
+
       state =
         state
         |> maybe_collect_module(trace)
@@ -112,7 +114,7 @@ defmodule Tracex.Collector do
     if Trace.module_definition?(trace) or Trace.inbound_module(trace) in @discarded_modules do
       {project, traces, classifiers}
     else
-      {project, [normalize_trace(trace, project) | traces], classifiers}
+      {project, [trace | traces], classifiers}
     end
   end
 
