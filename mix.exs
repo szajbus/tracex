@@ -33,7 +33,7 @@ defmodule Tracex.MixProject do
 
   defp docs() do
     [
-      main: "README",
+      main: "readme",
       extras: ["README.md"],
       source_url: "https://github.com/szajbus/tracex",
       source_ref: @version
