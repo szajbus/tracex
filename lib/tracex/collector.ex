@@ -48,7 +48,7 @@ defmodule Tracex.Collector do
     {:ok, {project, traces, classifiers}}
   end
 
-  @spec process(Trace.t()) :: :ok
+  @spec process({tuple, Macro.Env.t()}) :: :ok
   def process(trace) do
     GenServer.cast(__MODULE__, {:process, trace})
   end

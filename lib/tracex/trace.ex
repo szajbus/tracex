@@ -17,7 +17,17 @@ defmodule Tracex.Trace do
   the edge between the two modules involved in project's module dependency graph.
   """
 
-  @type t :: {tuple, Macro.Env.t()}
+  @type t :: {event, env}
+  @type event :: tuple
+  @type env :: %{
+          aliases: Macro.Env.aliases(),
+          context: Macro.Env.context(),
+          context_modules: Macro.Env.context_modules(),
+          file: binary,
+          function: Macro.Env.name_arity() | nil,
+          line: Macro.Env.line(),
+          module: atom
+        }
 
   @doc """
   Returns trace's inbound module
