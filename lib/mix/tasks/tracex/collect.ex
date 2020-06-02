@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Tracex.Collect do
   use Mix.Task
 
   @opts [
-    path: :string,
+    manifest_path: :string,
     classifier: [:string, :keep]
   ]
 
@@ -16,8 +16,8 @@ defmodule Mix.Tasks.Tracex.Collect do
 
   ## Command line options
 
-    * `manifest_path` - path to manifest file,
-      defaults to `_build/{Mix.env}/lib/tracex/.mix/tracex.collect`
+    * `manifest-path` - path to manifest file,
+      defaults to `_build/{Mix.env}/lib/tracex/.mix/tracex`
     * `classifier` - path to a file defining custom classifier module
 
   Multiple classifiers can be specified as:
