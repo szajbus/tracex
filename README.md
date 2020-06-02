@@ -35,20 +35,20 @@ end
 
 First thing is to perform trace collection during project compilation.
 
-```
+```elixir
 iex> {project, traces} = Tracex.compile_project()
 ```
 
 This compiles the project (with regular Elixir compiler), collects emitted traces and module information. It also dumps everything to disk in form of manifest file that can be later quickly reloaded in another iex session without recompilation.
 
-```
+```elixir
 iex> {project, traces} = Tracex.load_from_manifest()
 ```
 
 `project` struct encapsulates information about project's modules and `traces` is a (possibly long) list of collected compiler traces.
 
-```
-iex> project.get_module(MyApp.Model.User)
+```elixir
+iex> Tracex.Project.get_module(project, MyApp.Model.User)
 %Tracex.Project.Module{
   extra: %{},
   file: "lib/models/user.ex",
@@ -73,7 +73,7 @@ project
 
 To get some insights into how a module is used and how it interacts with other modules in your project use `Tracex.insights/2`
 
-```
+```elixir
 iex> Tracex.insights(traces, MyApp.Model.User)
 %{
   inbound: [
@@ -164,7 +164,7 @@ Note that **custom classifiers should not use any code from your project** becau
 
 To use a custom classifier module you must compile it manually before supplying to `Tracex.compile_project/1`.
 
-```
+```elixir
 iex> c "my_classifier.exs"
 iex> Tracex.compile_project(custom_classifiers: [MyClassifier])
 ```
