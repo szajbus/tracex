@@ -2,13 +2,21 @@ defmodule Tracex do
   @moduledoc """
   Tracex is a tool for static analysis of mix projects
 
-  It builds upon compiler tracing introduced in Elixir 1.10, simplifying collection of traces and turning them into valuable insights.
+  It builds upon compiler tracing introduced in Elixir 1.10, simplifying
+  collection of traces and turning them into valuable insights.
 
-  Tracex collects traces emitted by Elixir compiler and performs some basic data extraction and classification. The result, together with project's metadata built along the way, is available to the developer for further analysis.
+  Tracex collects traces emitted by Elixir compiler and performs some basic data
+  extraction and classification. The result, together with project's metadata built
+  along the way, is available to the developer for further analysis.
 
-  Tracex automatically recognizes some common types of modules present in mix projects, like Ecto schemas or Phoenix controllers and views. Additionally it supports attaching custom classifiers that are specific to your project in order to collect extra information that may prove helpful in actual analysis.
+  Tracex automatically recognizes some common types of modules present in mix
+  projects, like Ecto schemas or Phoenix controllers and views. Additionally it
+  supports attaching custom classifiers that are specific to your project in order to
+  collect extra information that may prove helpful in actual analysis.
 
-  Elixir compiler emits a lot of traces. For practical reasons tracex collets only ones that are local to your project. It means that any traces of interactions of your project's code with Elixir's core modules or external libraries are discarded.
+  Elixir compiler emits a lot of traces. For practical reasons tracex collets only
+  ones that are local to your project. It means that any traces of interactions of
+  your project's code with Elixir's core modules or external libraries are discarded.
   """
 
   alias Tracex.Collector
