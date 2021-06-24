@@ -99,4 +99,13 @@ defmodule Tracex.Project do
     project
     |> put_in([Access.key(:modules), module, Access.key(:extra), key], val)
   end
+
+  @doc """
+  Retrieve extra attribute previously added to module
+  """
+  @spec get_extra(t, atom, atom) :: any
+  def get_extra(%__MODULE__{} = project, module, key) do
+    project
+    |> get_in([Access.key(:modules), module, Access.key(:extra), key])
+  end
 end
